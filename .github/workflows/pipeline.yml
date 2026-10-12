@@ -1,0 +1,57 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check code
+        run: npm run lint
+
+      - name: Prepare build information
+        run: |
+          printf 'VITE_COMMIT_MESSAGE=%s\n' "$(git log -1 --pretty=%s)" >> "$GITHUB_ENV"
+          printf 'VITE_BUILD_TIME=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_COMMIT_SHA: ${{ github.sha }}
+          VITE_BRANCH: ${{ github.ref_name }}
+
+      - name: Configure SSH
+        if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Deploy
+        if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          scp -i ~/.ssh/deploy_key -P "$SSH_PORT" -r dist/. \
+            "$SSH_USER@$SSH_HOST:/srv/frontend-cicd-demo/current/"

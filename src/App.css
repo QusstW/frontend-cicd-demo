@@ -1,0 +1,51 @@
+main {
+  width: min(600px, calc(100% - 32px));
+  margin: 80px auto;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: 36px;
+}
+
+p {
+  margin: 0 0 32px;
+  color: #555;
+  line-height: 1.5;
+}
+
+dl {
+  margin: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+}
+
+dl div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  padding: 18px;
+  border-bottom: 1px solid #ddd;
+}
+
+dl div:last-child {
+  border-bottom: 0;
+}
+
+dt {
+  color: #777;
+}
+
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: monospace;
+}
+
+@media (max-width: 480px) {
+  dl div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
