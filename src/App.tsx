@@ -13,14 +13,16 @@ function App() {
       <h1>Frontend CI/CD demo</h1>
       <p>Эта страница собрана и опубликована через GitHub Actions.</p>
 
-      <dl>
+      <div>
         {buildInfo.map(([label, value]) => (
           <div key={label}>
             <dt>{label}</dt>
             <dd>{value}</dd>
           </div>
         ))}
-      </dl>
+      </div>
+
+      <div>пупу</div>
     </main>
   )
 }
